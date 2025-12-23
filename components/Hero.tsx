@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Linkedin } from 'lucide-react';
 
 // Simple X (Twitter) Logo Component
@@ -11,8 +11,67 @@ const XIcon = ({ className }: { className?: string }) => (
 const Hero: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // --- Auto-Scroll Logic ---
+  useEffect(() => {
+    // If on slide 1 (Bio), wait 15 seconds. Otherwise (Home), wait 5 seconds.
+    const duration = currentSlide === 1 ? 15000 : 5000;
+
+    const slideTimer = setTimeout(() => {
+      setCurrentSlide(prev => (prev === 0 ? 1 : 0));
+    }, duration);
+
+    // Cleanup: Reset timer on unmount or when slide changes manually
+    return () => clearTimeout(slideTimer);
+  }, [currentSlide]);
+
+  // --- Swipe Gesture Logic ---
+  const [touchStart, setTouchStart] = useState<{x: number, y: number} | null>(null);
+  const [touchEnd, setTouchEnd] = useState<{x: number, y: number} | null>(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null); 
+    setTouchStart({
+        x: e.targetTouches[0].clientX,
+        y: e.targetTouches[0].clientY
+    });
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd({
+        x: e.targetTouches[0].clientX,
+        y: e.targetTouches[0].clientY
+    });
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const xDistance = touchStart.x - touchEnd.x;
+    const yDistance = touchStart.y - touchEnd.y;
+    
+    // Check if the gesture is predominantly horizontal
+    // This prevents vertical scrolling from triggering a slide switch
+    if (Math.abs(xDistance) > Math.abs(yDistance)) {
+        if (Math.abs(xDistance) > minSwipeDistance) {
+            if (xDistance > 0) {
+                // Swipe Left -> Next Slide (Toggle)
+                setCurrentSlide(prev => (prev === 1 ? 0 : 1));
+            } else {
+                // Swipe Right -> Prev Slide (Toggle)
+                setCurrentSlide(prev => (prev === 0 ? 1 : 0));
+            }
+        }
+    }
+  };
+
   return (
-    <section className="relative w-full h-[calc(100vh-60px)] md:h-[calc(100vh-100px)] min-h-[600px] md:min-h-[750px] overflow-hidden bg-black text-white">
+    <section 
+      className="relative w-full h-[calc(100vh-60px)] md:h-[calc(100vh-100px)] min-h-[500px] md:min-h-[750px] overflow-hidden bg-black text-white"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       {/* Fixed Background Image - Persistent across slides */}
       <div className="absolute inset-0 z-0">
         <img 
@@ -31,7 +90,7 @@ const Hero: React.FC = () => {
       >
         
         {/* --- SLIDE 1: Home / Coming Soon --- */}
-        <div className="w-full h-full flex-shrink-0 flex items-center justify-center p-4">
+        <div className="w-full h-full flex-shrink-0 flex items-start justify-center p-4 pt-32 md:pt-48">
           <div className="flex flex-col items-center text-center max-w-4xl mx-auto w-full">
             {/* Main Headline */}
             <h2 className="text-5xl md:text-6xl lg:text-7xl font-serif mb-6 tracking-wide drop-shadow-sm">
@@ -75,7 +134,7 @@ const Hero: React.FC = () => {
         </div>
 
         {/* --- SLIDE 2: About Dr. Ayers --- */}
-        <div className="w-full h-full flex-shrink-0 flex items-center justify-center p-4 md:p-8 lg:p-16 overflow-y-auto md:overflow-hidden">
+        <div className="w-full h-full flex-shrink-0 flex items-center justify-center p-4 pb-32 md:p-8 lg:p-16 overflow-y-auto md:overflow-hidden">
           {/* Content Card with Glassmorphism */}
           <div className="bg-black/60 backdrop-blur-md rounded-xl p-6 md:p-10 lg:p-14 max-w-7xl w-full flex flex-col lg:flex-row gap-8 lg:gap-16 items-start shadow-2xl border border-white/10 my-auto">
             
@@ -149,7 +208,7 @@ const Hero: React.FC = () => {
       </div>
 
       {/* Carousel Navigation Dots */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4 z-20">
+      <div className="absolute bottom-20 md:bottom-8 left-1/2 transform -translate-x-1/2 flex gap-4 z-20">
           <button 
             onClick={() => setCurrentSlide(0)}
             className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${currentSlide === 0 ? 'bg-white scale-125' : 'bg-white/40 hover:bg-white/60'}`}
