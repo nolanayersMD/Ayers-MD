@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Psychiatry Practice | Coming Soon</title>
     <meta name="description" content="Our new psychiatry practice website is coming soon. Compassionate care for your mental wellness." />
-    <link rel="icon" href="https://i.ibb.co/jkvf185b/Ayers-psychiatry-logo-roun-001-png-001-2.jpg" />
+    <link id="favicon" rel="icon" href="https://i.ibb.co/jkvf185b/Ayers-psychiatry-logo-roun-001-png-001-2.jpg" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
     <script>
@@ -28,6 +28,35 @@
           }
         }
       }
+    </script>
+    <script>
+      // Script to dynamically transform the square JPG favicon into a circular PNG
+      // This removes the white background corners
+      document.addEventListener('DOMContentLoaded', function() {
+        var link = document.getElementById('favicon');
+        var img = new Image();
+        img.crossOrigin = "Anonymous"; // Allows canvas manipulation of external image
+        img.src = link.href;
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          var size = 64; // Create a high-quality icon
+          canvas.width = size;
+          canvas.height = size;
+          var ctx = canvas.getContext('2d');
+          
+          // Draw circle clipping path
+          ctx.beginPath();
+          ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2, true);
+          ctx.closePath();
+          ctx.clip();
+          
+          // Draw image into the circle
+          ctx.drawImage(img, 0, 0, size, size);
+          
+          // Update the favicon link with the new PNG data
+          link.href = canvas.toDataURL('image/png');
+        };
+      });
     </script>
     <style>
       body {
